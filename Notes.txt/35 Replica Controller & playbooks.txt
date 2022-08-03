@@ -1,0 +1,262 @@
+
+ ++++++++++++++++++++++++++++++++++
+ReplicationController:
+This is an high level object used for handling multiple replicas of a specific pod. Here we can perform load balancing and scalling.
+
+ReplicationController uses keys like replicas, template" etc in the "spec" section.
+
+In template section we can give metadata related to the pod and also use another spec section where we can give containers information.
+
+Ex: Create  a replication controller for creating 3 replicas of httpd
+
+
+
+vim  replication-controller.yml
+
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+ name: httpd-rc
+ labels:
+  author: sunil
+spec:
+ replicas: 3
+ template:
+  metadata:
+   name: httpd-pod
+   labels:
+    author: sunil
+  spec:
+   containers:
+    - name: myhttpd
+      image: httpd
+      ports:
+       - containerPort: 80
+         hostPort: 8080
+
+
+:wq
+
+
+kubectl delete --all pods   ( To delete all the existing pods )
+
+kubectl  get pods  ( No pods available )
+
+Open the port
+-------------------
+gcloud compute firewall-rules create rule21 --allow tcp:8080
+
+kubectl create -f replication-controller.yml
+
+kubectl  get pods  ( We should get 3 pods )
+
+kubectl  get pods -o wide ( Observation , 3 pods are distributed in 3 nodes )
+
+kubectl  get nodes -o wide
+
+
+Take external IP ( Public IP )  of any node
+34.122.234.70:8080
+
+34.134.16.68:8080
+
+
+
+To delete the replicas
+kubectl delete -f replication-controller.yml
+
+
+++++++++++++++++++++++++++
+ReplicaSet
+---------------
+
+Pod is the smallest kubernetes object, which we worked on.
+Next Level is replication controller.
+ReplicaSet is similar to replication controller.
+In replicatSet, we have an additional field in spec section called as "selector" field.
+
+This selector uses a child element called "matchLabels"   , where it will search for pods based on a 
+specific label name, and adds them to the cluster.
+
+Ex: Create a replicaset file to start 4 tomcat replicas and then perform scaling  
+
+vim replica-set.yml
+
+
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+ name: tomcat-rs
+ labels:
+  type: webserver
+  author: sunil
+spec:
+ replicas: 4
+ selector:
+  matchLabels:
+   type: webserver
+ template:
+  metadata:
+   name: tomcat-pod
+   labels:
+    type: webserver
+  spec:
+   containers:
+    - name: mywebserver
+      image: tomcat
+      ports:
+       - containerPort: 8080
+         hostPort: 9090
+
+ 
+:wq
+
+
+kubectl create -f replica-set.yml
+
+
+kubectl  get pods  ( We should get 4 pods )
+
+kubectl  get replicaset
+
+Lets perform scaling from 4 pods to 6 pods
+
+Option 1: We can open the definition file and make changes in the code from 4 to 6 in replicas field.
+
+vim replica-set.yml
+
+Now, we should not use create commands, we should use replace command.
+
+kubectl replace -f replica-set.yml
+
+kubectl  get pods  ( We should get 6 pods )
+
+Option 2: 
+
+kubectl scale --replicas=2 -f replica-set.yml
+
+kubectl  get pods  ( We should get 2 pods )
+
+ 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+Ex 2:
+---------
+vim pod-definition2.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: postgres-pod
+ labels:
+  author: sunil
+  type: database
+spec:
+ containers:
+  - name: mypostgres
+    image: postgres
+    env:
+     - name: POSTGRES_PASSWORD
+       value: durgasoft
+     - name: POSTGRES_USER
+       value: myuser
+     - name: POSTGRES_DB
+       value: mydb
+
+:wq
+
+      
+Command to run the definition file
+------------------------------------------
+kubectl create -f pod-definition2.yml
+
+
+To get the list of pods
+---------------------------
+kubectl get pods
+
+
+To get the list of pods along with IP address  and which node the pod is running
+---------------------------
+kubectl get pods -o wide
+
+
+TO get more details about the pod
+-----------------------------------------
+kubectl describe pods  postgres-pod
+
+or
+
+kubectl describe pods  postgres-pod | less
+
+
+Ex3:  
+
+vim pod-definition3.yml
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+ name: jenkins-pod
+ labels:
+  author: sunil
+  ci: cd
+spec:
+ containers:
+  - name: myjenkins
+    image: jenkins/jenkins
+    ports:
+     - containerPort: 8080
+       hostPort: 8080
+
+:wq
+
+
+
+
+How to open the port?
+-----------------------------
+gcloud compute firewall-rules create rule35 --allow tcp:8080 
+
+
+gcloud compute firewall-rules create rule2 --allow tcp:9090
+
+
+kubectl create -f pod-definition3.yml
+
+kubectl get pods -o wide
+
+Take a note on the node in which the pod is running.
+
+
+gke-cluster-1-default-pool-9fb99245-q1nm
+
+
+TO get the list of nodes
+-----------------------
+kubectl get nodes -o wide
+
+Take the external IP of the node
+
+35.223.183.189:8080
+34.68.242.87:8080
+
+
+Open browser  ( chrome)
+
+35.223.183.189:8080   ( we should get the jenkins page )
+
+
+
+
+
+
+

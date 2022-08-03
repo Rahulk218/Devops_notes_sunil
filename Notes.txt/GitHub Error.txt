@@ -1,0 +1,26 @@
+
+git config --global user.name "sunildevops77"
+git config --global user.email "sunildevops77@gmail.com"
+
+ git config  --global  --list
+
+mv ~/.gitconfig ~/.gitconfig_old
+
+
+git remote add origin https://github.com/sunildevops77/rep21.git
+
+git push -u origin master
+
+URL to fix
+-------------
+
+https://www.freecodecamp.org/forum/t/need-your-help-with-github-permission-denied-to-my-own-repo/17421/3
+
+
++++++++++++++++++
+
+control panel > user accounts > credential manager > Windows credentials > Generic credentials
+
+Next remove the Github keys.
+
+
